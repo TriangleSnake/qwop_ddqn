@@ -24,7 +24,7 @@ class QNetwork(nn.Module):
 # 初始化环境和Q网络
 env = ENV.QWOPEnv()  # 你的环境
 
-state_size = 27
+state_size = 71
 action_size = env.action_space.n
 q_network = QNetwork(state_size, action_size)
 target_q_network = QNetwork(state_size, action_size)
@@ -44,15 +44,13 @@ epsilon_decay = 0.995
 update_target_every = 5  # 多少回合更新一次目标网络
 batch_size = 64
 num_episodes = 1000
-max_steps_per_episode = 1000
+max_steps_per_episode = 100
 # 训练循环
 
 def get_state(state_dict):
     preprocessed_state = []
-
     # Extract head features
-    head_features = ['angle', 'linear_velocity_x', 'linear_velocity_y', 'position_x', 'position_y']
-    preprocessed_state.extend([state_dict['head'][feature] for feature in head_features])
+    features = ['angle', 'linear_velocity_x', 'linear_velocity_y', 'position_y','position_x']
 
     # Extract joint angles (you may choose to include other joint properties if needed)
     joint_features = ['leftAnkle', 'leftElbow', 'leftHip', 'leftKnee', 'leftShoulder',
@@ -61,14 +59,15 @@ def get_state(state_dict):
 
     # Extract other body parts features (optional, based on relevancy)
     # Here, only angles are considered for simplicity
-    body_parts = ['leftArm', 'leftCalf', 'leftFoot', 'leftForearm', 'leftThigh',
+    body_parts = ['head','leftArm', 'leftCalf', 'leftFoot', 'leftForearm', 'leftThigh',
                   'rightArm', 'rightCalf', 'rightFoot', 'rightForearm', 'rightThigh', 'torso']
     for part in body_parts:
-        preprocessed_state.append(state_dict[part]['angle'])
-
+        for feature in features:
+            preprocessed_state.append(state_dict[part][feature])
     return preprocessed_state
 
 def get_reward(ret):
+    
     return ret['torso']['position_x']
 
 
