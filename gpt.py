@@ -24,7 +24,7 @@ class QNetwork(nn.Module):
 # 初始化环境和Q网络
 env = ENV.QWOPEnv()  # 你的环境
 
-state_size = env.observation_space.shape[0]
+state_size = 27
 action_size = env.action_space.n
 q_network = QNetwork(state_size, action_size)
 target_q_network = QNetwork(state_size, action_size)
@@ -46,20 +46,50 @@ batch_size = 64
 num_episodes = 1000
 max_steps_per_episode = 1000
 # 训练循环
+
+def get_state(state_dict):
+    preprocessed_state = []
+
+    # Extract head features
+    head_features = ['angle', 'linear_velocity_x', 'linear_velocity_y', 'position_x', 'position_y']
+    preprocessed_state.extend([state_dict['head'][feature] for feature in head_features])
+
+    # Extract joint angles (you may choose to include other joint properties if needed)
+    joint_features = ['leftAnkle', 'leftElbow', 'leftHip', 'leftKnee', 'leftShoulder',
+                      'neck', 'rightAnkle', 'rightElbow', 'rightHip', 'rightKnee', 'rightShoulder']
+    preprocessed_state.extend([state_dict['joints'][joint] for joint in joint_features])
+
+    # Extract other body parts features (optional, based on relevancy)
+    # Here, only angles are considered for simplicity
+    body_parts = ['leftArm', 'leftCalf', 'leftFoot', 'leftForearm', 'leftThigh',
+                  'rightArm', 'rightCalf', 'rightFoot', 'rightForearm', 'rightThigh', 'torso']
+    for part in body_parts:
+        preprocessed_state.append(state_dict[part]['angle'])
+
+    return preprocessed_state
+
+def get_reward(ret):
+    return ret['torso']['position_x']
+
+
 for episode in range(num_episodes):
     state = env.reset()
-    print(state)
+    state = get_state(state)
     state = torch.tensor(state, dtype=torch.float32)
     for t in range(max_steps_per_episode):
         # 根据epsilon贪婪策略选择动作
         if random.random() < epsilon:
+            print("\rrandom",end="")
             action = env.action_space.sample()  # 随机动作
         else:
+            print("\rchoose",end="")
             q_values = q_network(state.unsqueeze(0)).detach()
             action = q_values.max(1)[1].item()  # 最大Q值的动作
-        print(action)
-        next_state, reward, done, false, _ = env.step(action)
-        
+        data = env.step(action)[0]
+        next_state = get_state(data)
+        reward = get_reward(data)
+        done = env.gameover
+
         next_state = torch.tensor(next_state, dtype=torch.float32)
         
         # 将转换存储到经验回放存储中
@@ -98,7 +128,7 @@ for episode in range(num_episodes):
     
     # 更新epsilon
     epsilon = max(min_epsilon, epsilon * epsilon_decay)
-    
+    print(epsilon)
     # 定期更新目标网络的权重
     if episode % update_target_every == 0:
         target_q_network.load_state_dict(q_network.state_dict())
