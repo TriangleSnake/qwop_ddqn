@@ -1,7 +1,8 @@
--- 3.64s [wsclient] WARNING: Failed to connect: [Errno 111] Connection refused
-/home/trianglesnake/qwop_ddqn/gpt.py:51: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:261.)
-  state = torch.tensor(state, dtype=torch.float32)
 Traceback (most recent call last):
-  File "/home/trianglesnake/qwop_ddqn/gpt.py", line 51, in <module>
-    state = torch.tensor(state, dtype=torch.float32)
-ValueError: expected sequence of length 60 at dim 1 (got 4)
+  File "/home/trianglesnake/qwop_ddqn/gpt.py", line 89, in <module>
+    loss.backward()
+  File "/home/trianglesnake/anaconda3/envs/qwop/lib/python3.10/site-packages/torch/_tensor.py", line 492, in backward
+    torch.autograd.backward(
+  File "/home/trianglesnake/anaconda3/envs/qwop/lib/python3.10/site-packages/torch/autograd/__init__.py", line 251, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+RuntimeError: Found dtype Double but expected Float
