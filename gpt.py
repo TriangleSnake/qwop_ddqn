@@ -4,9 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from collections import deque
-import game.env as env
-import host_game
-
+import game.env as ENV
 # 定义Q网络的类
 class QNetwork(nn.Module):
     def __init__(self, state_size, action_size, hidden_size=64):
@@ -24,7 +22,8 @@ class QNetwork(nn.Module):
         return self.fc2(x)
 
 # 初始化环境和Q网络
-env = env.QWOPEnv()  # 你的环境
+env = ENV.QWOPEnv()  # 你的环境
+
 state_size = env.observation_space.shape[0]
 action_size = env.action_space.n
 q_network = QNetwork(state_size, action_size)
@@ -49,6 +48,7 @@ max_steps_per_episode = 1000
 # 训练循环
 for episode in range(num_episodes):
     state = env.reset()
+    print(state)
     state = torch.tensor(state, dtype=torch.float32)
     for t in range(max_steps_per_episode):
         # 根据epsilon贪婪策略选择动作
@@ -57,8 +57,8 @@ for episode in range(num_episodes):
         else:
             q_values = q_network(state.unsqueeze(0)).detach()
             action = q_values.max(1)[1].item()  # 最大Q值的动作
-        
-        next_state, reward, done, _ = env.step(action)
+        print(action)
+        next_state, reward, done, false, _ = env.step(action)
         
         next_state = torch.tensor(next_state, dtype=torch.float32)
         
@@ -85,7 +85,7 @@ for episode in range(num_episodes):
             expected_q_values = rewards + gamma * next_q_values * (1 - dones)
             
             # 计算损失并执行梯度下降
-            loss = loss_fn(current_q_values, expected_q_values)
+            loss = loss_fn(current_q_values.float(), expected_q_values.float())
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -93,7 +93,7 @@ for episode in range(num_episodes):
         state = next_state
         
         # 如果回合结束则跳出循环
-        if env.gameover:
+        if done:
             break
     
     # 更新epsilon

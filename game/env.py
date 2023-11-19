@@ -55,7 +55,7 @@ class QWOPEnv(gym.Env):
 
         # Wait a bit and then start game
         time.sleep(2)
-        self.driver.find_element_by_xpath("//body").click()
+        self.driver.find_element("xpath","//body").click()
 
         self.keyboard = Controller()
         self.last_press_time = time.time()
