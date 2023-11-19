@@ -1,0 +1,7 @@
+-- 3.64s [wsclient] WARNING: Failed to connect: [Errno 111] Connection refused
+/home/trianglesnake/qwop_ddqn/gpt.py:51: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:261.)
+  state = torch.tensor(state, dtype=torch.float32)
+Traceback (most recent call last):
+  File "/home/trianglesnake/qwop_ddqn/gpt.py", line 51, in <module>
+    state = torch.tensor(state, dtype=torch.float32)
+ValueError: expected sequence of length 60 at dim 1 (got 4)
