@@ -19,7 +19,7 @@ class MyTCPServer(socketserver.TCPServer):
 
 def launch_game(port=PORT):
 
-    with MyTCPServer(("", port), Handler) as httpd:
+    with MyTCPServer(("localhost", port), Handler) as httpd:
         print(f"Serving at game directory at localhost:{port}")
         httpd.serve_forever()
 

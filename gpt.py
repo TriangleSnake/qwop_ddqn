@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from collections import deque
 import game.env as ENV
+import pickle
 # 定义Q网络的类
 class QNetwork(nn.Module):
     def __init__(self, state_size, action_size, hidden_size=64):
@@ -21,13 +22,64 @@ class QNetwork(nn.Module):
         x = self.relu(self.fc1(state))
         return self.fc2(x)
 
+def save_model():
+    print("Saving model...")
+    torch.save(q_network.state_dict(),'q_network.pth')
+    torch.save(target_q_network.state_dict(),'target_q_network.pth')
+    with open("variables.pkl","wb") as f:
+        variables = {
+            "gamma":gamma,
+            "epsilon":epsilon,
+            "min_epsilon":min_epsilon,
+            "epsilon_decay":epsilon_decay,
+            "update_target_every":update_target_every,
+            "num_episodes":num_episodes,
+            "max_steps_per_episode":max_steps_per_episode,
+            "episode":episode,
+            "replay_memory":replay_memory
+        }
+        pickle.dump(variables,f)
+    print("Model saved")
+
+def load_model():
+    global q_network,target_q_network,gamma,epsilon,min_epsilon,epsilon_decay,update_target_every,batch_size,num_episodes,max_steps_per_episode,episode,replay_memory
+    try:
+        q_network.load_state_dict(torch.load("q_network.pth"))    
+        target_q_network.load_state_dict(torch.load("target_q_network.pth"))
+        with open("variables.pkl","rb") as f:
+            variables = pickle.load(f)
+        gamma = variables["gamma"]
+        epsilon = variables["epsilon"]
+        min_epsilon = variables["min_epsilon"]
+        epsilon_decay = variables["epsilon_decay"]
+        update_target_every = variables["update_target_every"]
+        num_episodes = variables["num_episodes"]
+        max_steps_per_episode = variables["max_steps_per_episode"]
+        episode = variables["episode"]
+        replay_memory = variables['replay_memory']
+        print("Loaded model!")
+    except Exception as e:
+        print("Failed to load model...",e)
+        q_network = QNetwork(state_size,action_size)
+        target_q_network = QNetwork(state_size,action_size)
+        gamma = 0.99
+        epsilon = 1.0
+        min_epsilon = 0.01
+        epsilon_decay = 0.999
+        update_target_every = 5  # 多少回合更新一次目标网络
+        batch_size = 64
+        num_episodes = 10000
+        max_steps_per_episode = 500
+        episode = 0
 # 初始化环境和Q网络
 env = ENV.QWOPEnv()  # 你的环境
 
 state_size = 71
 action_size = env.action_space.n
+
 q_network = QNetwork(state_size, action_size)
 target_q_network = QNetwork(state_size, action_size)
+
 # 将Q网络的权重复制到目标Q网络
 target_q_network.load_state_dict(q_network.state_dict())
 
@@ -40,13 +92,15 @@ replay_memory = deque(maxlen=10000)
 gamma = 0.99
 epsilon = 1.0
 min_epsilon = 0.01
-epsilon_decay = 0.995
+epsilon_decay = 0.999
 update_target_every = 5  # 多少回合更新一次目标网络
 batch_size = 64
-num_episodes = 1000
-max_steps_per_episode = 100
+num_episodes = 10000
+max_steps_per_episode = 500
+episode = 0
 # 训练循环
 
+load_model()
 def get_state(state_dict):
     preprocessed_state = []
     # Extract head features
@@ -62,8 +116,7 @@ def get_state(state_dict):
     body_parts = ['head','leftArm', 'leftCalf', 'leftFoot', 'leftForearm', 'leftThigh',
                   'rightArm', 'rightCalf', 'rightFoot', 'rightForearm', 'rightThigh', 'torso']
     for part in body_parts:
-        for feature in features:
-            preprocessed_state.append(state_dict[part][feature])
+        preprocessed_state.extend([state_dict[part][feature] for feature in features])
     return preprocessed_state
 
 def get_reward(ret):
@@ -71,7 +124,10 @@ def get_reward(ret):
     return ret['torso']['position_x']
 
 
-for episode in range(num_episodes):
+
+
+
+while 1:
     state = env.reset()
     state = get_state(state)
     state = torch.tensor(state, dtype=torch.float32)
@@ -111,7 +167,9 @@ for episode in range(num_episodes):
             # 使用目标Q网络计算下一个状态的最大预期Q值
             current_q_values = q_network(states).gather(1, actions.unsqueeze(1)).squeeze(1)
             next_q_values = target_q_network(next_states).max(1)[0]
-            expected_q_values = rewards + gamma * next_q_values * (1 - dones)
+            print([type(i) for i in [reward,gamma,next_q_values,dones]])
+            print(gamma)
+            expected_q_values = rewards + float(gamma) * next_q_values * (1 - dones)
             
             # 计算损失并执行梯度下降
             loss = loss_fn(current_q_values.float(), expected_q_values.float())
@@ -131,7 +189,8 @@ for episode in range(num_episodes):
     # 定期更新目标网络的权重
     if episode % update_target_every == 0:
         target_q_network.load_state_dict(q_network.state_dict())
-
+        save_model()
+        
     # 输出训练信息
     print(f"Episode {episode} finished after {t+1} timesteps")
-
+    episode += 1

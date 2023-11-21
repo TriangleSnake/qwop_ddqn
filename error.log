@@ -1,8 +1,4 @@
 Traceback (most recent call last):
-  File "/home/trianglesnake/qwop_ddqn/gpt.py", line 89, in <module>
-    loss.backward()
-  File "/home/trianglesnake/anaconda3/envs/qwop/lib/python3.10/site-packages/torch/_tensor.py", line 492, in backward
-    torch.autograd.backward(
-  File "/home/trianglesnake/anaconda3/envs/qwop/lib/python3.10/site-packages/torch/autograd/__init__.py", line 251, in backward
-    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
-RuntimeError: Found dtype Double but expected Float
+  File /home/trianglesnake/qwop_ddqn/gpt.py, line 170, in <module>
+    expected_q_values = rewards + gamma * next_q_values * (1 - dones)
+TypeError: only integer tensors of a single element can be converted to an index
