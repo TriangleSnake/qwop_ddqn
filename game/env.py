@@ -51,6 +51,7 @@ class QWOPEnv(gym.Env):
 
         # Open browser and go to QWOP page
         self.driver = webdriver.Firefox()
+        self.driver.set_window_size(700,500)
         self.driver.get(f'http://localhost:{PORT}/Athletics.html')
 
         # Wait a bit and then start game
@@ -142,7 +143,8 @@ class QWOPEnv(gym.Env):
         for part in body_state.values():
             state = state + list(part.values())
         state = np.array(state)
-
+        body_state['reward'] = reward1
+        body_state['score'] = game_state['score']
         return body_state,game_state, done, {}
 
     def _release_all_keys_(self):
