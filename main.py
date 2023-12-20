@@ -71,7 +71,7 @@ replay_memory = deque(maxlen=10000)
 gamma = 0.95
 epsilon = 1.0
 min_epsilon = 0.01
-epsilon_decay = 0.999
+epsilon_decay = 0.995
 update_target_every = 5  # 多少回合更新一次目标网络
 batch_size = 64
 num_episodes = 10000
