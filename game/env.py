@@ -51,7 +51,7 @@ class QWOPEnv(gym.Env):
 
         # Open browser and go to QWOP page
         self.driver = webdriver.Firefox()
-        self.driver.set_window_size(700,500)
+        self.driver.set_window_size(700,700)
         self.driver.get(f'http://localhost:{PORT}/Athletics.html')
 
         # Wait a bit and then start game
