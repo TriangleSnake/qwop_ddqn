@@ -40,9 +40,10 @@ action_size = env.action_space.n
 q_network = QNetwork(state_size, action_size)
 import sys
 try:
-    path = sys.argv[1]
+    path = './trained_data/'+sys.argv[1]
 except:
     path = '.'
+
 q_network.load_state_dict(torch.load(path + "/q_network.pth"))
 state = env.reset()
 while 1:
