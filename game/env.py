@@ -1,3 +1,5 @@
+#此份文件從[https://github.com/Wesleyliao/QWOP-RL/blob/main/game/env.py]引用並修改
+
 import time
 
 import gym
